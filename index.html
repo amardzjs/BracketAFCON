@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFCON 2025 Bracket Builder</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: system-ui, sans-serif;
+    background: linear-gradient(135deg, #667eea, #667eea);
+    min-height: 100vh;
+    padding: 10px;
+    overflow-x: auto;
+}
+.header {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 15px;
+}
+/* ===== BRACKET ===== */
+.bracket-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    width: max-content;
+    margin: auto;
+}
+.trophy-img {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: auto;
+}
+.round {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+.round h3 {
+    text-align: center;
+    font-size: 0.8em;
+    color: #667eea;
+}
+.bracket-cell {
+    width: 140px;
+    height: 60px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.match-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 5px;
+}
+.team-slot {
+    width: 45px;
+    height: 45px;
+    border: 2px dashed #ccc;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.team-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.team-slot.filled {
+    border: 2px solid #667eea;
+}
+.vs-text {
+    font-size: 0.6em;
+    font-weight: bold;
+    color: #667eea;
+}
+.final .bracket-cell {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+.final .team-slot {
+    background: #fff;
+}
+/* ===== FLAGS POOL ===== */
+.country-pool {
+    margin-top: 15px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+}
+.flags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+.flag-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: grab;
+}
+.flag-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+/* ===== SAVE BUTTON ===== */
+#save-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 12px 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    transition: all 0.2s ease-in-out;
+}
+#save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 14px rgba(0,0,0,0.25);
+}
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+    .bracket-wrapper {
+        gap: 8px;
+        padding: 10px;
+        transform: scale(0.9);
+        transform-origin: top left;
+    }
+    .bracket-cell {
+        width: 120px;
+        height: 55px;
+    }
+    .team-slot {
+        width: 40px;
+        height: 40px;
+    }
+    .flag-circle {
+        width: 40px;
+        height: 40px;
+    }
+    .trophy-img {
+        top: -50px;
+        width: 40px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>AFCON 2025 Bracket</h1>
+</div>
+
+<div class="bracket-wrapper" id="bracket-wrapper">
+   
+    <div class="round">
+        <h3>R16</h3>
+        <div class="bracket-cell" data-match="L1"></div>
+        <div class="bracket-cell" data-match="L2"></div>
+        <div class="bracket-cell" data-match="L3"></div>
+        <div class="bracket-cell" data-match="L4"></div>
+    </div>
+
+    <div class="round">
+        <h3>R8</h3>
+        <div class="bracket-cell" data-match="QL1"></div>
+        <div class="bracket-cell" data-match="QL2"></div>
+    </div>
+
+    <div class="round">
+        <h3>SF</h3>
+        <div class="bracket-cell" data-match="SL"></div>
+    </div>
+
+    <div class="round final">
+        <h3>FINAL</h3>
+        <div class="bracket-cell" data-match="FINAL"></div>
+    </div>
+
+    <div class="round">
+        <h3>SF</h3>
+        <div class="bracket-cell" data-match="SR"></div>
+    </div>
+
+    <div class="round">
+        <h3>R8</h3>
+        <div class="bracket-cell" data-match="QR1"></div>
+        <div class="bracket-cell" data-match="QR2"></div>
+    </div>
+
+    <div class="round">
+        <h3>R16</h3>
+        <div class="bracket-cell" data-match="R1"></div>
+        <div class="bracket-cell" data-match="R2"></div>
+        <div class="bracket-cell" data-match="R3"></div>
+        <div class="bracket-cell" data-match="R4"></div>
+    </div>
+</div>
+
+<button id="save-btn"> Save </button>
+
+<div class="country-pool">
+    <div class="flags-container" id="flags"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const countries = [
+'ma','ml','zm','km','eg','za','ao','zw',
+'ng','tn','tz','ug','sn','cd','bj','bw',
+'dz','bf','gq','sd','cm','ci','ga','mz'
+];
+
+let dragged = null;
+const bracket = {};
+const flagsBox = document.getElementById('flags');
+
+countries.forEach(code => {
+    const d = document.createElement('div');
+    d.className = 'flag-circle';
+    d.draggable = true;
+    d.innerHTML = `<img src="https://flagcdn.com/w80/${code}.png">`;
+    d.ondragstart = () => dragged = code;
+    flagsBox.appendChild(d);
+});
+
+document.querySelectorAll('.bracket-cell').forEach(cell => {
+    const id = cell.dataset.match;
+    bracket[id] = {a:null,b:null};
+    render(cell,id);
+});
+
+function render(cell,id){
+    const m = bracket[id];
+    cell.innerHTML = `
+    <div class="match-content">
+        <div class="team-slot ${m.a?'filled':''}" data-s="a">
+            ${m.a ? `<img src="https://flagcdn.com/w80/${m.a}.png">` : ''}
+        </div>
+        <div class="vs-text">VS</div>
+        <div class="team-slot ${m.b?'filled':''}" data-s="b">
+            ${m.b ? `<img src="https://flagcdn.com/w80/${m.b}.png">` : ''}
+        </div>
+    </div>`;
+
+    cell.querySelectorAll('.team-slot').forEach(s=>{
+        s.ondragover = e => e.preventDefault();
+        s.ondrop = () => {
+            bracket[id][s.dataset.s] = dragged;
+            render(cell,id);
+        };
+        s.onclick = () => {
+            bracket[id][s.dataset.s] = null;
+            render(cell,id);
+        };
+    });
+}
+
+// ===== SAVE BUTTON =====
+document.getElementById('save-btn').onclick = () => {
+    const bracketDiv = document.getElementById('bracket-wrapper');
+    html2canvas(bracketDiv, {useCORS:true, allowTaint:true, backgroundColor:null}).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'afcon_bracket.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+};
+</script>
+
+</body>
+</html>
