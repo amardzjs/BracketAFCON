@@ -177,7 +177,6 @@ body {
 </div>
 
 <div class="bracket-wrapper" id="bracket-wrapper">
-   
     <div class="round">
         <h3>R16</h3>
         <div class="bracket-cell" data-match="L1"></div>
@@ -237,18 +236,39 @@ const countries = [
 ];
 
 let dragged = null;
+let selectedCountry = null;
 const bracket = {};
 const flagsBox = document.getElementById('flags');
 
+// Detect mobile via screen width
+let isMobile = window.innerWidth <= 768;
+window.addEventListener('resize', () => {
+    isMobile = window.innerWidth <= 768;
+});
+
+// Create flag pool
 countries.forEach(code => {
     const d = document.createElement('div');
     d.className = 'flag-circle';
     d.draggable = true;
     d.innerHTML = `<img src="https://flagcdn.com/w80/${code}.png">`;
+    
     d.ondragstart = () => dragged = code;
+    
+    d.onclick = () => {
+        if(isMobile){
+            selectedCountry = code;
+            document.querySelectorAll('.flag-circle').forEach(f => f.style.outline = '');
+            d.style.outline = '2px solid #667eea';
+        } else {
+            dragged = code;
+        }
+    }
+    
     flagsBox.appendChild(d);
 });
 
+// Initialize bracket cells
 document.querySelectorAll('.bracket-cell').forEach(cell => {
     const id = cell.dataset.match;
     bracket[id] = {a:null,b:null};
@@ -275,7 +295,13 @@ function render(cell,id){
             render(cell,id);
         };
         s.onclick = () => {
-            bracket[id][s.dataset.s] = null;
+            if(isMobile && selectedCountry){
+                bracket[id][s.dataset.s] = selectedCountry;
+                selectedCountry = null;
+                document.querySelectorAll('.flag-circle').forEach(f => f.style.outline = '');
+            } else {
+                bracket[id][s.dataset.s] = null;
+            }
             render(cell,id);
         };
     });
