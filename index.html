@@ -15,53 +15,27 @@ body {
     overflow-x: auto;
 }
 .header {text-align:center; color:#fff; margin-bottom:15px;}
-.bracket-wrapper {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    background: #fff;
-    padding: 15px;
-    border-radius: 12px;
-    width: max-content;
-    margin: auto;
-}
-.trophy-img {position:absolute; top:-60px; left:50%; transform:translateX(-50%); width:50px; height:auto;}
-.round {display:flex; flex-direction:column; gap:22px;}
+.bracket-wrapper {position: relative; display:flex; justify-content:center; align-items:center; gap:12px; background:#fff; padding:15px; border-radius:12px; width:max-content; margin:auto; flex-wrap: wrap;}
+.round {display:flex; flex-direction:column; gap:22px; align-items:center;}
 .round h3 {text-align:center; font-size:0.8em; color:#667eea;}
-.bracket-cell {
-    width: 140px; height:60px; border:2px solid #ddd; border-radius:8px;
-    display:flex; align-items:center; justify-content:center;
-}
+.bracket-cell {width:140px; height:60px; border:2px solid #ddd; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:#f9f9f9;}
+.bracket-cell.filled {border:2px solid #667eea; background:#e6e6ff;}
 .match-content {display:flex; align-items:center; justify-content:space-between; width:100%; padding:5px;}
-.team-slot {
-    width:45px; height:45px; border:2px dashed #ccc; border-radius:6px;
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-}
+.team-slot {width:45px; height:45px; border:2px dashed #ccc; border-radius:6px; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer;}
 .team-slot img {width:100%; height:100%; object-fit:cover;}
 .team-slot.filled {border:2px solid #667eea;}
 .vs-text {font-size:0.6em; font-weight:bold; color:#667eea;}
-.final .bracket-cell {background:linear-gradient(135deg, #667eea, #764ba2);}
+.final .bracket-cell {background:linear-gradient(135deg,#667eea,#764ba2);}
 .final .team-slot {background:#fff;}
-.country-pool {margin-top:15px; background:#fff; padding:15px; border-radius:12px;}
-.flags-container {display:flex; flex-wrap:wrap; gap:10px; justify-content:center;}
-.flag-circle {width:45px; height:45px; border-radius:50%; overflow:hidden; cursor:grab;}
-.flag-circle img {width:100%; height:100%; object-fit:cover;}
-#save-btn {
-    display:block; margin:20px auto; padding:12px 25px; font-size:1.1em; font-weight:bold;
-    color:#fff; background:linear-gradient(135deg, #667eea, #764ba2);
-    border:none; border-radius:10px; cursor:pointer; box-shadow:0 5px 10px rgba(0,0,0,0.2);
-    transition:all 0.2s ease-in-out;
-}
+#save-btn {display:block; margin:20px auto; padding:12px 25px; font-size:1.1em; font-weight:bold; color:#fff; background:linear-gradient(135deg,#667eea,#764ba2); border:none; border-radius:10px; cursor:pointer;}
 #save-btn:hover {transform:translateY(-2px); box-shadow:0 7px 14px rgba(0,0,0,0.25);}
-@media (max-width:768px){
-    .bracket-wrapper {gap:8px; padding:10px; transform:scale(0.9); transform-origin:top left;}
-    .bracket-cell {width:120px; height:55px;}
-    .team-slot {width:40px; height:40px;}
-    .flag-circle {width:40px; height:40px;}
-    .trophy-img {top:-50px; width:40px;}
-}
+
+/* ===== COUNTRY POPUP ===== */
+.country-popup {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; display:none;}
+.popup-content {background:#fff; padding:20px; border-radius:12px; max-height:80%; overflow-y:auto; width:80%;}
+.country-list {display:flex; flex-wrap:wrap; gap:10px; justify-content:center;}
+.country-item {width:45px; height:45px; border-radius:50%; overflow:hidden; cursor:pointer; border:2px solid #ccc; display:flex; justify-content:center; align-items:center;}
+.country-item img {width:100%; height:100%; object-fit:cover;}
 </style>
 </head>
 <body>
@@ -102,85 +76,86 @@ body {
 
 <button id="save-btn"> Save </button>
 
-<div class="country-pool">
-    <div class="flags-container" id="flags"></div>
+<!-- Country selection popup -->
+<div class="country-popup" id="country-popup">
+    <div class="popup-content">
+        <h3>Select Country</h3>
+        <div class="country-list" id="country-list"></div>
+        <button id="close-popup" style="margin-top:10px;padding:10px 20px;">Cancel</button>
+    </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 const countries = ['ma','ml','zm','km','eg','za','ao','zw','ng','tn','tz','ug','sn','cd','bj','bw','dz','bf','gq','sd','cm','ci','ga','mz'];
-let dragged = null;
-let selectedCountry = null;
 const bracket = {};
-const flagsBox = document.getElementById('flags');
+let activeCell = null;
+let activeSlot = null;
 
-// Detect mobile via screen width
-let isMobile = window.innerWidth <= 768;
-window.addEventListener('resize', () => { isMobile = window.innerWidth <= 768; });
+const countryPopup = document.getElementById('country-popup');
+const countryList = document.getElementById('country-list');
 
-// Flag pool creation
-countries.forEach(code => {
+// fill popup
+countries.forEach(code=>{
     const d = document.createElement('div');
-    d.className = 'flag-circle';
-    d.draggable = true;
+    d.className = 'country-item';
     d.innerHTML = `<img src="https://flagcdn.com/w80/${code}.png">`;
-
-    d.ondragstart = () => { dragged = code; };
-
-    function selectFlag() {
-        selectedCountry = code;
-        document.querySelectorAll('.flag-circle').forEach(f => f.style.outline='');
-        d.style.outline = '2px solid #667eea';
-    }
-
-    d.onclick = () => { if(isMobile) selectFlag(); else dragged = code; };
-    d.ontouchstart = () => { if(isMobile) selectFlag(); };
-
-    flagsBox.appendChild(d);
+    d.onclick = ()=>{
+        if(activeCell && activeSlot){
+            bracket[activeCell.dataset.match][activeSlot] = code;
+            renderBracket();
+            countryPopup.style.display = 'none';
+            activeCell = null; activeSlot = null;
+        }
+    };
+    countryList.appendChild(d);
 });
 
-// Initialize bracket
-document.querySelectorAll('.bracket-cell').forEach(cell => {
-    const id = cell.dataset.match;
-    bracket[id] = {a:null,b:null};
-    render(cell,id);
+// init bracket
+document.querySelectorAll('.bracket-cell').forEach(cell=>{
+    bracket[cell.dataset.match] = {a:null,b:null};
 });
 
-function render(cell,id){
-    const m = bracket[id];
-    cell.innerHTML = `
-        <div class="match-content">
-            <div class="team-slot ${m.a?'filled':''}" data-s="a">${m.a?`<img src="https://flagcdn.com/w80/${m.a}.png">`:''}</div>
-            <div class="vs-text">VS</div>
-            <div class="team-slot ${m.b?'filled':''}" data-s="b">${m.b?`<img src="https://flagcdn.com/w80/${m.b}.png">`:''}</div>
-        </div>
-    `;
-    cell.querySelectorAll('.team-slot').forEach(s=>{
-        s.ondragover = e => e.preventDefault();
-        s.ondrop = () => { bracket[id][s.dataset.s]=dragged; render(cell,id); };
-
-        s.onclick = s.ontouchstart = () => {
-            if(isMobile && selectedCountry){
-                bracket[id][s.dataset.s] = selectedCountry;
-                selectedCountry = null;
-                document.querySelectorAll('.flag-circle').forEach(f=>f.style.outline='');
-            } else {
-                bracket[id][s.dataset.s] = null;
-            }
-            render(cell,id);
-        };
+// render
+function renderBracket(){
+    document.querySelectorAll('.bracket-cell').forEach(cell=>{
+        const m = bracket[cell.dataset.match];
+        cell.classList.toggle('filled', m.a || m.b);
+        cell.innerHTML = `
+            <div class="match-content">
+                <div class="team-slot ${m.a?'filled':''}" data-s="a">${m.a?`<img src="https://flagcdn.com/w80/${m.a}.png">`:''}</div>
+                <div class="vs-text">VS</div>
+                <div class="team-slot ${m.b?'filled':''}" data-s="b">${m.b?`<img src="https://flagcdn.com/w80/${m.b}.png">`:''}</div>
+            </div>
+        `;
+        cell.querySelectorAll('.team-slot').forEach(s=>{
+            s.onclick = ()=>{
+                activeCell = cell;
+                activeSlot = s.dataset.s;
+                countryPopup.style.display = 'flex';
+            };
+        });
     });
 }
 
-// Save button
-document.getElementById('save-btn').onclick = () => {
+// initial render
+renderBracket();
+
+// save button
+document.getElementById('save-btn').onclick = ()=>{
     html2canvas(document.getElementById('bracket-wrapper'), {useCORS:true, allowTaint:true, backgroundColor:null})
-    .then(canvas => {
+    .then(canvas=>{
         const link = document.createElement('a');
         link.download = 'afcon_bracket.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
     });
+};
+
+// close popup
+document.getElementById('close-popup').onclick = ()=>{
+    countryPopup.style.display = 'none';
+    activeCell = null; activeSlot = null;
 };
 </script>
 
